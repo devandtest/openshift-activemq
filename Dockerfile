@@ -1,5 +1,3 @@
-#FROM openjdk:8-jre
-#FROM registry.redhat.io/redhat-openjdk-18/openjdk18-openshift
 FROM registry.access.redhat.com/rhel7/rhel                     
 
 MAINTAINER Dev and Test <testanddev@example.com>
