@@ -1,5 +1,5 @@
-#FROM openjdk:8-jre
-FROM registry.redhat.io/redhat-openjdk-18/openjdk18-openshift
+FROM openjdk:8-jre
+#FROM registry.redhat.io/redhat-openjdk-18/openjdk18-openshift
 
 MAINTAINER Dev and Test <testanddev@example.com>
 
