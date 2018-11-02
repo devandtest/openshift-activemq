@@ -1,7 +1,38 @@
 apiVersion: v1
 kind: Template
+labels:
+  template: openshift-activemq
+message: A new persistent messaging service has been created in your project.
 metadata:
   name: openshift-activemq
+  creationTimestamp: null
+  annotations:
+    description: Application template for ActiveMQ. These can be deployed
+      as standalone and use persistent storage for saving messages
+    iconClass: icon-amq
+    openshift.io/display-name: ActiveMQ 5.15.7
+    openshift.io/provider-display-name: Mindbox
+    tags: messaging,amq
+    version: 5.15.7
+
+parameters:
+- name: NAMESPACE
+  description: "OpenShift project (current namespace)"
+  required: false
+- name: ISTAG
+  description: "Image to deploy"
+  value: openshift-activemq
+- name: ACTIVEMQ_USER
+  description: "Username for the ActiveMQ instance"
+  value: admin
+- name: ACTIVEMQ_PASS
+  description: "Password securing the ActiveMQ instance"
+  generate: expression
+  from: "[a-zA-Z0-9]{16}"
+- name: VOLUME_SIZE
+  description: "Size of the RabbitMQ data volume"
+  value: 1Gi
+
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -46,11 +77,21 @@ objects:
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /opt/amq
+              name: activemq-config
+            - mountPath: /tmp2
+              name: activemq-data
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: activemq-config
+        - emptyDir: {}
+          name: activemq-data
     test: false
     triggers:
     - type: ConfigChange
@@ -80,7 +121,8 @@ objects:
     runPolicy: Serial
     source:
       git:
-        uri: https://github.com/devandtest/openshift-activemq.git 
+        //uri: https://github.com/MindboxGroup/openshift-activemq.git
+        uri: https://github.com/devandtest/openshift-activemq.git
       type: Git
     strategy:
       type: Docker
