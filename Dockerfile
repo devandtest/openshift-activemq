@@ -1,6 +1,6 @@
 FROM rhel7/rhel
 
-MAINTAINER Dev and Test <testanddev@example.com>
+MAINTAINER R&D Mindbox <ran2d@mindboxgroup.com>
 
 ENV ACTIVEMQ_VERSION=5.15.7 \
     POSTGRES_JDBC_DRIVER_VERSION=9.4.1212 \
