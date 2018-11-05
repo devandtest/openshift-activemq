@@ -30,7 +30,7 @@ RUN tar xzf $ACTIVEMQ-bin.tar.gz -C  /opt && \
     ln -s /opt/$ACTIVEMQ $ACTIVEMQ_HOME && \
     useradd -r -M -d $ACTIVEMQ_HOME activemq && \
     chown -R activemq:activemq /opt/$ACTIVEMQ && \
-    chown -h activemq:activemq $ACTIVEMQ_HOME \
+    chown -h activemq:activemq $ACTIVEMQ_HOME && \
     chmod +x /docker-entrypoint.sh
 
 USER activemq
