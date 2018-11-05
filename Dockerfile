@@ -11,6 +11,9 @@ ENV ACTIVEMQ=apache-activemq-$ACTIVEMQ_VERSION
 
 COPY files/docker-entrypoint.sh /docker-entrypoint.sh
 
+# RHEL update
+RUN yum -y update
+
 # Add java 
 RUN yum -y install java-1.8.0-openjdk.x86_64
 
