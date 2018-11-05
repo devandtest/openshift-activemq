@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: openshift-activemq
+  template: activemq
 message: A new persistent messaging service has been created in your project.
 metadata:
-  name: openshift-activemq
+  name: activemq
   creationTimestamp: null
   annotations:
     description: Application template for ActiveMQ. These can be deployed
@@ -16,12 +16,11 @@ metadata:
     version: 5.15.7
 
 parameters:
-- name: NAMESPACE
-  description: "OpenShift project (current namespace)"
-  required: false
-- name: ISTAG
-  description: "Image to deploy"
-  value: openshift-activemq
+- description: The name for the application.
+  displayName: Application Name
+  name: APPLICATION_NAME
+  required: true
+  value: activemq
 - name: ACTIVEMQ_USER
   description: "Username for the ActiveMQ instance"
   value: admin
@@ -30,8 +29,17 @@ parameters:
   generate: expression
   from: "[a-zA-Z0-9]{16}"
 - name: VOLUME_SIZE
-  description: "Size of the RabbitMQ data volume"
+  description: "Size of the ActiveMQ data volume"
   value: 1Gi
+  required: true
+- name: GITHUB_URL
+  description: "Github URL"
+  value: https://github.com/devandtest/openshift-activemq.git
+  required: true
+- name: GITHUB_REPO_BRANCH
+  description: "Github Repo Branch"
+  value: master
+  required: true
 
 objects:
 - apiVersion: v1
@@ -41,14 +49,14 @@ objects:
       openshift.io/generated-by: OpenShiftNewApp
     generation: 1
     labels:
-      app: openshift-activemq
-    name: openshift-activemq
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
   spec:
     replicas: 1
     revisionHistoryLimit: 10
     selector:
-      app: openshift-activemq
-      deploymentconfig: openshift-activemq
+      app: ${APPLICATION_NAME}
+      deploymentconfig: ${APPLICATION_NAME}
     strategy:
       activeDeadlineSeconds: 21600
       resources: {}
@@ -62,13 +70,13 @@ objects:
     template:
       metadata:
         labels:
-          app: openshift-activemq
-          deploymentconfig: openshift-activemq
+          app: ${APPLICATION_NAME}
+          deploymentconfig: ${APPLICATION_NAME}
       spec:
         containers:
         - image: ''
           imagePullPolicy: Always
-          name: openshift-activemq
+          name: ${APPLICATION_NAME}
           ports:
           - containerPort: 61616
             protocol: TCP
@@ -78,51 +86,49 @@ objects:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
-            - mountPath: /opt/amq
-              name: activemq-config
-            - mountPath: /tmp2
-              name: activemq-data
+            - mountPath: /opt/activemq/data
+              name: ${APPLICATION_NAME}-data
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
         volumes:
-        - emptyDir: {}
-          name: activemq-config
-        - emptyDir: {}
-          name: activemq-data
+        - name: ${APPLICATION_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${APPLICATION_NAME}-pvc-claim
+          //emptyDir: {}
     test: false
     triggers:
     - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
-        - openshift-activemq
+        - ${APPLICATION_NAME}
         from:
           kind: ImageStreamTag
-          name: openshift-activemq:latest
+          name: ${APPLICATION_NAME}:latest
       type: ImageChange
 - apiVersion: v1
   kind: BuildConfig
   metadata:
     labels:
-      app: openshift-activemq
-    name: openshift-activemq
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
   spec:
     failedBuildsHistoryLimit: 5
     nodeSelector: null
     output:
       to:
         kind: ImageStreamTag
-        name: openshift-activemq:latest
+        name: ${APPLICATION_NAME}:latest
     postCommit: {}
     resources: {}
     runPolicy: Serial
     source:
       git:
-        //uri: https://github.com/MindboxGroup/openshift-activemq.git
-        uri: https://github.com/devandtest/openshift-activemq.git
+        uri: ${GITHUB_URL}
+        ref: ${GITHUB_REPO_BRANCH}
       type: Git
     strategy:
       type: Docker
@@ -141,8 +147,8 @@ objects:
   kind: ImageStream
   metadata:
     labels:
-      app: openshift-activemq
-    name: openshift-activemq
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
   spec:
     lookupPolicy:
       local: false
@@ -150,8 +156,8 @@ objects:
   kind: Service
   metadata:
     labels:
-      app: openshift-activemq
-    name: openshift-activemq
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
   spec:
     ports:
     - name: 8161-tcp
@@ -163,16 +169,16 @@ objects:
       protocol: TCP
       targetPort: 61616
     selector:
-      app: openshift-activemq
-      deploymentconfig: openshift-activemq
+      app: ${APPLICATION_NAME}
+      deploymentconfig: ${APPLICATION_NAME}
     sessionAffinity: None
     type: ClusterIP
 - apiVersion: v1
   kind: Route
   metadata:
     labels:
-      app: openshift-activemq
-    name: activemq
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
   spec:
     port:
       targetPort: 8161-tcp
@@ -181,6 +187,18 @@ objects:
       termination: edge
     to:
       kind: Service
-      name: openshift-activemq
+      name: ${APPLICATION_NAME}
       weight: 100
     wildcardPolicy: None
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}-pvc-claim
+  spec:
+    accessModes:
+    - ReadWriteMany
+    resources:
+      requests:
+        storage: ${VOLUME_SIZE}
