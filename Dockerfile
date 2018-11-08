@@ -1,11 +1,11 @@
-FROM registry.access.redhat.com/rhel7/rhel                     
+FROM rhel7.5                     
 
 MAINTAINER Dev and Test <testanddev@example.com>
 
-ENV ACTIVEMQ_VERSION=5.15.7 \
-    POSTGRES_JDBC_DRIVER_VERSION=9.4.1212 \
-    ACTIVEMQ_TCP=61616 \
-    ACTIVEMQ_HOME=/opt/activemq
+ENV ACTIVEMQ_VERSION=5.15.7 
+ENV POSTGRES_JDBC_DRIVER_VERSION=9.4.1212 
+ENV ENV ACTIVEMQ_TCP=61616 ACTIVEMQ_AMQP=5672 ACTIVEMQ_STOMP=61613 ACTIVEMQ_MQTT=1883 ACTIVEMQ_WS=61614 ACTIVEMQ_UI=8161
+ENV ACTIVEMQ_HOME=/opt/activemq
 
 ENV ACTIVEMQ=apache-activemq-$ACTIVEMQ_VERSION    
 
@@ -27,8 +27,7 @@ RUN set -x && \
 
 WORKDIR $ACTIVEMQ_HOME
 
-EXPOSE 61616
-EXPOSE 8161
+EXPOSE $ACTIVEMQ_UI
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/bin/sh", "-c", "bin/activemq console"]
