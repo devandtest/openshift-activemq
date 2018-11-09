@@ -22,13 +22,14 @@ RUN if [ "$SHA512_VAL" != "$(sha512sum $ACTIVEMQ-bin.tar.gz | awk '{print($1)}')
     fi;
     
 # Update RHEL
-RUN yum -y update
+# RUN yum -y update
 
 # Add java 
 RUN yum -y install java-1.8.0-openjdk.x86_64
 
+# Install ActiveMQ
 RUN set -x && \
-    tar xzf $ACTIVEMQ-bin.tar.gz -C  /opt \
+    tar xzf $ACTIVEMQ-bin.tar.gz -C  /opt && \
     ln -s /opt/$ACTIVEMQ $ACTIVEMQ_HOME && \
     cd $ACTIVEMQ_HOME/lib/optional && \
     curl -O https://jdbc.postgresql.org/download/postgresql-$POSTGRES_JDBC_DRIVER_VERSION.jar && \    
@@ -40,7 +41,7 @@ RUN set -x && \
 
 WORKDIR $ACTIVEMQ_HOME
 
-EXPOSE $ACTIVEMQ_UI
+EXPOSE $ACTIVEMQ_TCP $ACTIVEMQ_AMQP $ACTIVEMQ_STOMP $ACTIVEMQ_MQTT $ACTIVEMQ_WS $ACTIVEMQ_UI
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/bin/sh", "-c", "bin/activemq console"]
