@@ -33,13 +33,14 @@ RUN set -x && \
     ln -s /opt/$ACTIVEMQ $ACTIVEMQ_HOME && \
     cd $ACTIVEMQ_HOME/lib/optional && \
     curl -O https://jdbc.postgresql.org/download/postgresql-$POSTGRES_JDBC_DRIVER_VERSION.jar && \    
-    useradd -r -M -d $ACTIVEMQ_HOME activemq && \
+    useradd -r -M -u 10100 -d $ACTIVEMQ_HOME activemq && \
     chown -R activemq:activemq /opt/$ACTIVEMQ && \
     chown -h activemq:activemq $ACTIVEMQ_HOME && \
     chmod go+rwX -R $ACTIVEMQ_HOME && \
     chmod +x /docker-entrypoint.sh
 
-USER activemq
+# activemq user UID
+USER 10100
 
 WORKDIR $ACTIVEMQ_HOME
 
